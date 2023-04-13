@@ -1,0 +1,12 @@
+
+
+Youtube video:
+
+1. Yannic Kilcher(https://www.youtube.com/watch?v=TrdevFK_am4)
+2. https://www.youtube.com/watch?v=ovB0ddFtzzA (pytorch implementation)
+
+Git repository:
+
+lucid rains (https://github.com/lucidrains/vit-pytorch/blob/main/vit_pytorch/vit.py)
+
+ross wightman (https://github.com/huggingface/pytorch-image-models/blob/main/timm/models/vision_transformer.py)
