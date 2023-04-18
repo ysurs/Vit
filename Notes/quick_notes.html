@@ -62,13 +62,13 @@ ul.task-list li input[type="checkbox"] {
 </p>
 <p><strong>Note</strong> We will not be actually passing numbers 1, 2, or 3 for specifying the position. We will pass embeddings at index 1 for patch 1 and so on. The embedding matrix is learnable.</p>
 <ul>
-<li>The pathces themselves are 16x16, we will have to make them suitable for input to transformer hence we perform unrolling. The steps are shown below.</li>
+<li>The patches themselves are 16x16, we will have to make them suitable for input to transformer hence we perform unrolling. The steps are shown below.</li>
 </ul>
 <p align="center">
 <img width="600" height="500" src="./images/unrolling.jpeg">
 </p>
 <ul>
-<li><p>The authors also add a learnable embedding [CLS] at the beginning of the patch sequence. This embedding serves helps in classification of the image.</p></li>
+<li><p>The authors also add a learnable embedding [CLS] at the beginning of the patch sequence. This embedding helps in classification of the image.</p></li>
 <li><p>Thats it, these were some quick notes. I plan to make a blog post about this paper after my implementation.</p></li>
 </ul>
 
