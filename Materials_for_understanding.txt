@@ -10,3 +10,5 @@ Git repository:
 lucid rains (https://github.com/lucidrains/vit-pytorch/blob/main/vit_pytorch/vit.py)
 
 ross wightman (https://github.com/huggingface/pytorch-image-models/blob/main/timm/models/vision_transformer.py)
+
+Medium article (https://medium.com/mlearning-ai/vision-transformers-from-scratch-pytorch-a-step-by-step-guide-96c3313c2e0c)
