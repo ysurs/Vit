@@ -5,7 +5,7 @@ Youtube video (ViT):
 1. Yannic Kilcher(https://www.youtube.com/watch?v=TrdevFK_am4)
 2. https://www.youtube.com/watch?v=ovB0ddFtzzA (pytorch implementation)
 
-Youtube video (Mulit headed self attention)
+Youtube video (Multi headed self attention)
 1. https://www.youtube.com/watch?v=mMa2PmYJlCo
 2. https://www.youtube.com/watch?v=HQn1QKQYXVg
 
