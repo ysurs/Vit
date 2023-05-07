@@ -28,13 +28,26 @@ def patchify(images, no_of_patches_per_row):
     
     patches=torch.zeros(n,no_of_patches_per_row**2,c*h*w//(no_of_patches_per_row**2))
     
-    print(patches.shape)
+    '''
+    Each patch is a square
+    '''
+    patch_size=h//no_of_patches_per_row
     
-
-
-
-
-
+    '''
+    The following code extracts patches from each image row wise and flattens the patches
+    '''
+    for idx,image in enumerate(images):
+      for i in range(no_of_patches_per_row):
+        for j in range(no_of_patches_per_row):
+          
+          patch=image[:,i*patch_size:(i+1)*patch_size,j*patch_size:(j+1)*patch_size]
+          patches[idx,i*14+j]=patch.flatten()
+          
+    return patches
+          
+          
+      
+    
 class MyViT(nn.Module):
   def __init__(self, chw=(1, 28, 28), n_patches=7):
     # Super constructor
