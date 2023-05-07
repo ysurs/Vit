@@ -33,7 +33,9 @@ class muliheaded_attention(nn.Module):
     def forward(self, patch_sequences):
         
         '''
+        About MHA
         1. patch_sequences is of shape (batch_size (no of images in a batch), no_of_patches per image, embedding_size of each patch)
+        2. output will be of shape (batch_size (no of images in a batch),no_of_patches per image, concatenated filtered attention (equal to the embedding_size of each patch)
         '''
         
         '''
@@ -87,4 +89,5 @@ class muliheaded_attention(nn.Module):
                 print(filtered_attention)
             
             after_mha.append(torch.hstack(filtered_attention_matrices))
-            print(after_mha)
+            
+        return torch.cat([torch.unsqueeze(tensor,dim=0) for tensor in after_mha])
