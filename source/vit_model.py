@@ -41,26 +41,63 @@ def patchify(images, no_of_patches_per_row):
         for j in range(no_of_patches_per_row):
           
           patch=image[:,i*patch_size:(i+1)*patch_size,j*patch_size:(j+1)*patch_size]
-          patches[idx,i*14+j]=patch.flatten()
+          patches[idx,i*no_of_patches_per_row+j]=patch.flatten()
           
     return patches
           
           
       
     
-class MyViT(nn.Module):
-  def __init__(self, chw=(1, 28, 28), n_patches=7):
+class ViT(nn.Module):
+  def __init__(self, chw=(1, 28, 28), n_patches_per_row=7,hidden_dim=8):
     # Super constructor
-    super(MyViT, self).__init__()
+    super(ViT, self).__init__()
 
-    # Attributes
     self.chw = chw # (C, H, W)
-    self.n_patches = n_patches
+    self.n_patches_per_row = n_patches_per_row
+    self.patch_dim=(chw[1]//n_patches_per_row,chw[2]//n_patches_per_row)
+    self.patch_embedding_dim=chw[0]*self.patch_dim[0]*self.patch_dim[1]
 
-    assert chw[1] % n_patches == 0, "Input shape not entirely divisible by number of patches"
-    assert chw[2] % n_patches == 0, "Input shape not entirely divisible by number of patches"
+    assert chw[1] % n_patches_per_row == 0, "Input shape not entirely divisible by number of patches"
+    assert chw[2] % n_patches_per_row == 0, "Input shape not entirely divisible by number of patches"
+    
+    '''
+    1. Linear mapping.
+    2. To reduce the dimensionality of embedding of a patch.
+    '''
+    self.linear_layer=nn.Linear(self.patch_embedding_dim,hidden_dim)
+    
+    
+    '''
+    Adding classification token at the beginning of patch sequence for each image in the batch
+    '''
+    self.cls_token=nn.Parameter(torch.ones(1,hidden_dim))
 
+  
+  
   def forward(self, images):
-    patches = patchify(images, self.n_patches)
-    return patches
+    
+    '''
+    Patchify the input images
+    '''
+    patches = patchify(images, self.n_patches_per_row)
+    
+    
+    '''
+    1.Map each patch's embedding to a lesser dimension. The size gets reduced to hidden_dim.
+    2. This layer also has learnable weights.
+    '''
+    hidden_patches=self.linear_layer(patches)
+    
+    
+    '''
+    Adding cls token at the beggining of patch sequence
+    '''
+    cls_added_patch_sequence=torch.stack([torch.cat((self.cls_token,patch_sequence),dim=0) for patch_sequence in hidden_patches])
+    
+    
+    
+    
+    
+    return cls_added_patch_sequence
     
