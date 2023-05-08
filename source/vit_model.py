@@ -45,9 +45,20 @@ def patchify(images, no_of_patches_per_row):
           
     return patches
           
-          
+
+'''
+1.For every patch, the values at i'th postion will be altered depending on i being odd or even.
+2. For every patch in the sequence, a unique position is added.
+'''
+def get_positional_embeddings(sequence_length, d):
+    result = torch.ones(sequence_length, d)
+    for i in range(sequence_length):
+        for j in range(d):
+            result[i][j] = np.sin(i / (10000 ** (j / d))) if j % 2 == 0 else np.cos(i / (10000 ** ((j - 1) / d)))
+    return result
       
     
+
 class ViT(nn.Module):
   def __init__(self, chw=(1, 28, 28), n_patches_per_row=7,hidden_dim=8):
     # Super constructor
@@ -57,6 +68,7 @@ class ViT(nn.Module):
     self.n_patches_per_row = n_patches_per_row
     self.patch_dim=(chw[1]//n_patches_per_row,chw[2]//n_patches_per_row)
     self.patch_embedding_dim=chw[0]*self.patch_dim[0]*self.patch_dim[1]
+    self.hidden_dim=hidden_dim
 
     assert chw[1] % n_patches_per_row == 0, "Input shape not entirely divisible by number of patches"
     assert chw[2] % n_patches_per_row == 0, "Input shape not entirely divisible by number of patches"
@@ -77,6 +89,10 @@ class ViT(nn.Module):
   
   def forward(self, images):
     
+    
+    images_per_batch,channels,height,weight=images.shape
+    
+    
     '''
     Patchify the input images
     '''
@@ -96,8 +112,12 @@ class ViT(nn.Module):
     cls_added_patch_sequence=torch.stack([torch.cat((self.cls_token,patch_sequence),dim=0) for patch_sequence in hidden_patches])
     
     
+    positional_embedding=get_positional_embeddings(self.n_patches_per_row+1, self.hidden_dim)
+    patches_with_positional_embedding=cls_added_patch_sequence+positional_embedding.repeat(images_per_batch,1,1)
     
     
     
-    return cls_added_patch_sequence
+    
+    
+    return patches_with_positional_embedding
     
