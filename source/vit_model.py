@@ -1,12 +1,6 @@
 import torch
 import numpy as np
 import torch.nn as nn
-from torch.optim import Adam
-from torch.nn import CrossEntropyLoss
-from torch.utils.data import DataLoader
-
-from torchvision.transforms import ToTensor
-from torchvision.datasets.mnist import MNIST
 
 from mha import muliheaded_attention
 
@@ -130,7 +124,7 @@ class ViT(nn.Module):
     '''
     Adding classification token at the beginning of patch sequence for each image in the batch
     '''
-    self.cls_token=nn.Parameter(torch.ones(1,hidden_dim))
+    self.cls_token=nn.Parameter(torch.randn(1,hidden_dim))
     
     
     '''
