@@ -92,7 +92,7 @@ class ViT_encoder(nn.Module):
 
 class ViT(nn.Module):
   
-  def __init__(self, chw=(1, 28, 28), n_patches_per_row=7,hidden_dim=8,no_of_vit_encoders=2,no_mha_heads=2,no_of_output_classes=10):
+  def __init__(self, chw=(1, 28, 28), n_patches_per_row=7,hidden_dim=8,no_of_vit_encoders=2,no_mha_heads=2,no_of_output_classes=10,device="cuda"):
     # Super constructor
     super(ViT, self).__init__()
 
@@ -103,6 +103,7 @@ class ViT(nn.Module):
     self.hidden_dim=hidden_dim
     self.vit_encoders=nn.ModuleList([ViT_encoder(hidden_dim,no_mha_heads) for encoder in range(no_of_vit_encoders)])
     self.no_of_output_classes=no_of_output_classes
+    self.device=device
     
     '''
     Note: We could have used get_positional_embeddings function as is in the forward method but then it would have been part of computation and its parameters might have updated.
@@ -118,7 +119,7 @@ class ViT(nn.Module):
     1. Linear mapping.
     2. To reduce the dimensionality of embedding of a patch.
     '''
-    self.linear_layer=nn.Linear(self.patch_embedding_dim,hidden_dim)
+    self.linear_layer=nn.Linear(self.patch_embedding_dim,self.hidden_dim)
     
     
     '''
@@ -146,7 +147,7 @@ class ViT(nn.Module):
     '''
     Patchify the input images
     '''
-    patches = patchify(images, self.n_patches_per_row)
+    patches = patchify(images, self.n_patches_per_row).to(device)
     
     
     '''
