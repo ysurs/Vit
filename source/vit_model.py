@@ -8,6 +8,8 @@ from torch.utils.data import DataLoader
 from torchvision.transforms import ToTensor
 from torchvision.datasets.mnist import MNIST
 
+from mha import muliheaded_attention
+
 '''
 1. Setting random seed ensures reproducible results. When ever this code runs, same sequence of random initializations will be used.
 2. Helpful for testing and debugging purposes.
@@ -18,7 +20,9 @@ torch.manual_seed(0)
 # Importing necessary classes
 from mha import muliheaded_attention
 
-
+'''
+Patchifying images
+'''
 def patchify(images, no_of_patches_per_row):
     
     n,c,h,w=images.shape
@@ -59,6 +63,39 @@ def get_positional_embeddings(sequence_length, d):
       
     
 
+
+'''
+This class implements ViT encoder which includes layer norm layers, mlp and multiheaded attention
+'''
+class ViT_encoder(nn.Module):
+  
+  def __init__(self,hidden_state,no_of_heads=2,multiplicative_factor=4):
+    
+    super(ViT_encoder,self).__init__()
+    
+    self.layer_norm1=nn.LayerNorm(hidden_state)
+    self.layer_norm2=nn.LayerNorm(hidden_state)
+    
+    self.mha=muliheaded_attention(hidden_state,no_of_heads)
+    
+    self.mlp = nn.Sequential(
+            nn.Linear(hidden_state, multiplicative_factor * hidden_state),
+            nn.GELU(),
+            nn.Linear(multiplicative_factor * hidden_state, hidden_state)
+        )
+    
+    
+  def forward(self,input):
+    
+    output1=input+self.mha(self.layer_norm1(input))
+    output_from_vit_encoder=output1+self.mlp(self.layer_norm2(output1))
+    
+    return output_from_vit_encoder
+      
+    
+
+
+
 class ViT(nn.Module):
   def __init__(self, chw=(1, 28, 28), n_patches_per_row=7,hidden_dim=8):
     # Super constructor
@@ -69,6 +106,13 @@ class ViT(nn.Module):
     self.patch_dim=(chw[1]//n_patches_per_row,chw[2]//n_patches_per_row)
     self.patch_embedding_dim=chw[0]*self.patch_dim[0]*self.patch_dim[1]
     self.hidden_dim=hidden_dim
+    
+    '''
+    Note: We could have used get_positional_embeddings function as is in the forward method but then it would have been part of computation and its parameters might have updated.
+    We don't want the following tensor to change its value i.e we want it to be constant. Hence we have to use nn.Parameter and then set requires_grad=False.
+    '''
+    self.positional_embedding=nn.Parameter(get_positional_embeddings(self.n_patches_per_row**2+1, self.hidden_dim))
+    self.positional_embedding.requires_grad=False
 
     assert chw[1] % n_patches_per_row == 0, "Input shape not entirely divisible by number of patches"
     assert chw[2] % n_patches_per_row == 0, "Input shape not entirely divisible by number of patches"
@@ -112,12 +156,13 @@ class ViT(nn.Module):
     cls_added_patch_sequence=torch.stack([torch.cat((self.cls_token,patch_sequence),dim=0) for patch_sequence in hidden_patches])
     
     
-    positional_embedding=get_positional_embeddings(self.n_patches_per_row+1, self.hidden_dim)
-    patches_with_positional_embedding=cls_added_patch_sequence+positional_embedding.repeat(images_per_batch,1,1)
+    '''
+    Note: We are applying positional embedding after adding CLS token. 
+    CLS token will be the first token in patch sequence for each image
+    '''
+    batch_repeated_positional_embedding=self.positional_embedding.repeat(images_per_batch,1,1)
+    patches_with_positional_embedding=cls_added_patch_sequence+batch_repeated_positional_embedding
     
     
-    
-    
-    
-    return patches_with_positional_embedding
+  return patches_with_positional_embedding
     
