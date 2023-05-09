@@ -45,7 +45,7 @@ class muliheaded_attention(nn.Module):
         
         for patch_sequence in patch_sequences:
             
-            print(patch_sequence.shape)
+            
             filtered_attention_matrices=[]
             
             for h in range(self.no_of_heads):
@@ -86,7 +86,7 @@ class muliheaded_attention(nn.Module):
                 We append the filtered attention obtained from each head to a list. After collecting these filtered_attention matrices, we will need to concatenate them horizontally.
                 '''
                 filtered_attention_matrices.append(filtered_attention)
-                print(filtered_attention)
+                
             
             after_mha.append(torch.hstack(filtered_attention_matrices))
             
