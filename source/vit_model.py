@@ -97,7 +97,8 @@ class ViT_encoder(nn.Module):
 
 
 class ViT(nn.Module):
-  def __init__(self, chw=(1, 28, 28), n_patches_per_row=7,hidden_dim=8):
+  
+  def __init__(self, chw=(1, 28, 28), n_patches_per_row=7,hidden_dim=8,no_of_vit_encoders=2,no_mha_heads=2,no_of_output_classes=10):
     # Super constructor
     super(ViT, self).__init__()
 
@@ -106,6 +107,8 @@ class ViT(nn.Module):
     self.patch_dim=(chw[1]//n_patches_per_row,chw[2]//n_patches_per_row)
     self.patch_embedding_dim=chw[0]*self.patch_dim[0]*self.patch_dim[1]
     self.hidden_dim=hidden_dim
+    self.vit_encoders=nn.ModuleList([ViT_encoder(hidden_dim,no_mha_heads) for encoder in range(no_of_vit_encoders)])
+    self.no_of_output_classes=no_of_output_classes
     
     '''
     Note: We could have used get_positional_embeddings function as is in the forward method but then it would have been part of computation and its parameters might have updated.
@@ -128,6 +131,15 @@ class ViT(nn.Module):
     Adding classification token at the beginning of patch sequence for each image in the batch
     '''
     self.cls_token=nn.Parameter(torch.ones(1,hidden_dim))
+    
+    
+    '''
+    For final classification
+    '''
+    self.classification_mlp=nn.Sequential(
+      nn.Linear(self.hidden_dim,self.no_of_output_classes),
+      nn.Softmax(dim=-1)
+    )
 
   
   
@@ -164,5 +176,13 @@ class ViT(nn.Module):
     patches_with_positional_embedding=cls_added_patch_sequence+batch_repeated_positional_embedding
     
     
-  return patches_with_positional_embedding
+    ''' 
+    Passing the patch_sequence through vit encoders
+    '''
+    for vit_encoder in self.vit_encoders:
+      out=vit_encoder(patches_with_positional_embedding)
+    
+    only_cls_token_per_batch=out[:,0,:]
+    
+    return self.classification_mlp(only_cls_token_per_batch)
     
